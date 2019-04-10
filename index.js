@@ -3,6 +3,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express().use(bodyParser.json());
+const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 
 // Express listening to port 3000 for any requests
 const PORT = 3000;
@@ -19,12 +20,13 @@ app.post('/webhook', (req, res) => {
             console.log(webhook_event);
         });
 
-        res.status(200).send('EVENT_RECEIVED');
+        res.status(200);
     } else {
         res.sendStatus(404);
     }
 });
 
+// Verifies webhook with messenger api using VERIFY_TOKEN
 app.get('/webhook', (req, res) => {
     let VERIFY_TOKEN = "HorsesEatCarrots";
 
@@ -37,7 +39,8 @@ app.get('/webhook', (req, res) => {
     if (mode && token) {
         // Mode and token are correct, return the challenge token
         if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-            console.log('WEBHOOK_VERIFIED');
+            console.log('webhook verified');
+            console.log(challenge);
             res.status(200).send(challenge);
         }
     } else {
