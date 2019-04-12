@@ -1,24 +1,17 @@
 /* 
 RPGBot.js
 
-Controls game logic, handles commands, and responds accordingly
+Controls game logic, handles commands, and responses
 
 */
+
 const logger = require('winston');
 const helpText = require('./helpers/helpText.json');
-const sqlite3 = require('sqlite3');
 const request = require('request');
-const sql_commands = require('./helpers/sql_commands')
+const sql_commands = require('./helpers/sql_commands');
+const sendResponse = require('../controllers/responseController');
+const db = require('../db/db.js');
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
-
-// Open database
-let db = new sqlite3.Database('./db/rpgbot.db', (err) => {
-    if (err) {
-        logger.error(err.message);
-    }
-    logger.info('Connected to the RPGBot Database');
-    db.run(sql_commands.CHECK_DB_EXISTS);
-});
 
 // Parses a command and handles it accordingly
 // psid is the user's PSID who sent the command
@@ -35,7 +28,8 @@ let parseCommand = (psid, commands) => {
             response = getHelp(args);
             break;
         case 'register':
-            handleRegistration(psid, args);
+            const registrationHandler = require('./handlers/registrationHandler.js');
+            registrationHandler(psid, args);
             return;
         case 'commands':
             response = "I can't do that yet!"
@@ -61,68 +55,6 @@ let getHelp = (args) => {
         return "I can't help you with that command!"
         // }
     }
-}
-
-// Checks if user is already registered.
-// If not, adds the user to the database.
-let handleRegistration = (psid, args) => {
-    if (args.length !== 1) {
-        sendResponse(psid, "Please use *Register <Username>* to register. Usernames may not have any spaces in them.");
-        return;
-    }
-
-    // See if user is already registered
-    let user_exists_query = sql_commands.CHECK_USER_EXISTS;
-    db.all(user_exists_query, [psid], (err, rows) => {
-        if (err) {
-            logger.error("Error checking database for existing user: " + err);
-            sendResponse(psid, "I couldn't make an account for you. Please try again in a few minutes.");
-            return;
-        }
-
-        // If user already exists in our DB
-        if (rows.length !== 0 && rows[0].psid == psid) {
-            sendResponse(psid, ("You are already registered with the username: *" + rows[0].ign + "*"));
-        } else {
-            // There are no entries for that PSID, register a new user
-            let add_user = sql_commands.REGISTER_NEW_USER;
-            db.run(add_user, [psid, args[0]], (err) => {
-                if (err) {
-                    logger.error("Error adding new player to database: " + err);
-                    sendResponse(psid, "I couldn't make an account for you. Please try again in a few minutes.");
-                    return;
-                }
-                logger.info("New user registered. PSID: " + psid + " -> " + args[0]);
-                sendResponse(psid, "You are now registered under the username *" + args[0] + "*. Enjoy the game!");
-            });
-        }
-    });
-}
-
-// Sends response back to the user
-function sendResponse (sender_psid, response) {
-    let req_body = {
-        "recipient" : {
-            "id" : sender_psid
-        },
-        "message" : { "text" : response }
-    }
-
-    request({
-        "messaging_type" : "RESPONSE",
-        "uri" : "https://graph.facebook.com/v3.2/me/messages",
-        "qs" : {
-            "access_token" : PAGE_ACCESS_TOKEN
-        },
-        "method" : "POST",
-        "json" : req_body
-    }, (err, res, body) => {
-        if (!err) {
-            logger.info('Message sent to ' + sender_psid + ': ' + response);
-        } else {
-            logger.error('Unable to send message:' + err);
-        }
-    })
 }
 
 module.exports = {
