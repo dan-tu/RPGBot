@@ -1,0 +1,6 @@
+{
+    "noargs" : "Welcome to RPGBot's game! This is a text based role-playing game. You can play the game by sending me commands.\n\nTo get started, you will have to use the command:\n*Register <your desired username>*\n\nHere are the commands you can use:\n*1. Commands* - Shows you a list of commands\n*2. Show* - Shows you information about your character\n*3. Fight* - Starts a fight\n",
+    "show" : {
+
+    }
+}
