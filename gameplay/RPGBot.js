@@ -6,35 +6,53 @@ Controls game logic, handles commands, and responds accordingly
 */
 const logger = require('winston');
 const helpText = require('./helpText.json');
+const sqlite3 = require('sqlite3');
+const request = require('request');
+const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+
+// Open database
+let db = new sqlite3.Database('./db/rpgbot.db', (err) => {
+    if (err) {
+        logger.error(err.message);
+    }
+    logger.info('Connected to the RPGBot Database');
+    db.run('CREATE TABLE IF NOT EXISTS players (psid text primary key, ign text, level int, exp int, max_hp, int, damage int, defense int)');
+});
 
 // Parses a command and handles it accordingly
 // psid is the user's PSID who sent the command
 // command is the command string
-var parseCommand = (psid, command) => {
-    logger.info('Parsing "' + command + '" from PSID: ' + psid);
-    var args_arr = command.toLowerCase().split(" ");
-    var command = args_arr[0];
-    var args = args_arr.slice(1, args_arr.length);
+let parseCommand = (psid, commands) => {
+    logger.info('Parsing "' + commands + '" from PSID: ' + psid);
+    let args_arr = commands.toLowerCase().split(" ");
+    let command = args_arr[0];
+    let args = args_arr.slice(1, args_arr.length);
+    let response;
 
     switch (command) {
         case 'help':
-            return getHelp(args);
+            response = getHelp(args);
+            break;
         case 'register':
-            return handleRegistration(args);
+            handleRegistration(psid, args);
+            return;
         case 'commands':
-            return "I can't do that yet!"
+            response = "I can't do that yet!"
         case 'show':
-            return "I can't do that yet!"
+            response = "I can't do that yet!"
         case 'fight':
-            return "I can't do that yet!"
+            response = "I can't do that yet!"
         default:
-            return "I did not recognize that command. For help, send me 'help'";
+            response = "I did not recognize that command. For help, send me *help*. For a list of commands, use *commands*.";
     }
+
+    sendResponse(psid, response);
 }
 
 // Provides a help string depending on which arguments were provided
 // args is the arguments after 'Help <args>'
-const getHelp = (args) => {
+// Returns the help string
+let getHelp = (args) => {
     if (args.length === 0) {
         return helpText.noargs;
     } else {
@@ -45,8 +63,66 @@ const getHelp = (args) => {
 }
 
 // Creates a new database entry for this user with starting information and desired username
-const handleRegistration = (psid) => {
+let handleRegistration = (psid, args) => {
+    if (args.length !== 1) {
+        sendResponse(psid, "Please use *Register <Username>* to register. Usernames may not have any spaces in them.");
+        return;
+    }
 
+    // See if user already exists in database
+    let user_exists_query = 'SELECT * FROM players WHERE psid = (?)';
+    db.all(user_exists_query, [psid], (err, rows) => {
+        if (err) {
+            logger.error("Error checking database for existing user: " + err);
+            sendResponse(psid, "I couldn't make an account for you. Please try again in a few minutes.");
+            return;
+        }
+
+        // Should technically only have one row since psid is a primary key
+        if (rows.length !== 0) {
+            if (rows[0].psid == psid) {
+                logger.info("User tried to register but was already registered: " + psid);
+                sendResponse(psid, ("You are already registered with the username: *" + rows[0].ign + "*"));
+            }
+        } else {
+            // There are no entries for that PSID, register a new user
+            let add_user = 'INSERT INTO players VALUES ((?), (?), 1, 0, 10, 5, 5)';
+            db.run(add_user, [psid, args[0]], (err) => {
+                if (err) {
+                    logger.error("Error adding new player to database: " + err);
+                    sendResponse(psid, "I couldn't make an account for you. Please try again in a few minutes.");
+                    return;
+                }
+                sendResponse(psid, "You are now registered under the username *" + args[0] + "*. Enjoy the game!");
+            });
+        }
+    });
+}
+
+// Sends response back to the user
+function sendResponse (sender_psid, response) {
+    let req_body = {
+        "recipient" : {
+            "id" : sender_psid
+        },
+        "message" : { "text" : response }
+    }
+
+    request({
+        "messaging_type" : "RESPONSE",
+        "uri" : "https://graph.facebook.com/v3.2/me/messages",
+        "qs" : {
+            "access_token" : PAGE_ACCESS_TOKEN
+        },
+        "method" : "POST",
+        "json" : req_body
+    }, (err, res, body) => {
+        if (!err) {
+            logger.info('Message sent to ' + sender_psid + ': ' + response);
+        } else {
+            logger.error('Unable to send message:' + err);
+        }
+    })
 }
 
 module.exports = {

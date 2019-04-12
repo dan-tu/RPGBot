@@ -1,6 +1,4 @@
 const logger = require('winston');
-const request = require('request');
-const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 const RPGBot = require('../gameplay/RPGBot');
 
 module.exports = (req, res) => {
@@ -15,7 +13,7 @@ module.exports = (req, res) => {
 
             // Check event type
             if (webhook_event.message) {
-                handleMessage(sender_psid, webhook_event.message);
+                RPGBot.parseCommand(sender_psid, webhook_event.message.text);
             } else if (webhook_event.postback) {
                 handlePostback(sender_psid, webhook_event.postback);
             }
@@ -28,45 +26,8 @@ module.exports = (req, res) => {
     }
 };
 
-// Handlers
-function handleMessage (sender_psid, received_message) {
-    let response;
-
-    if (received_message.text) {
-        response = {
-            "text" : RPGBot.parseCommand(sender_psid, received_message.text)
-        }
-    }
-    sendResponse(sender_psid, response);
-}
 
 function handlePostback (sender_psid, received_postback) {
     logger.warn('Postbacks not implemented yet');
-    sendResponse(sender_psid, "I can't handle postbacks yet!");
 }
 
-// Sends response back to the user
-function sendResponse (sender_psid, response) {
-    let req_body = {
-        "recipient" : {
-            "id" : sender_psid
-        },
-        "message" : response
-    }
-
-    request({
-        "messaging_type" : "RESPONSE",
-        "uri" : "https://graph.facebook.com/v3.2/me/messages",
-        "qs" : {
-            "access_token" : PAGE_ACCESS_TOKEN
-        },
-        "method" : "POST",
-        "json" : req_body
-    }, (err, res, body) => {
-        if (!err) {
-            logger.info('Message sent to ' + sender_psid + ': ' + response.text);
-        } else {
-            logger.error('Unable to send message:' + err);
-        }
-    })
-}
