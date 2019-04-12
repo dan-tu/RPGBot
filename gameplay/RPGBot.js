@@ -5,9 +5,10 @@ Controls game logic, handles commands, and responds accordingly
 
 */
 const logger = require('winston');
-const helpText = require('./helpText.json');
+const helpText = require('./helpers/helpText.json');
 const sqlite3 = require('sqlite3');
 const request = require('request');
+const sql_commands = require('./helpers/sql_commands')
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 
 // Open database
@@ -16,7 +17,7 @@ let db = new sqlite3.Database('./db/rpgbot.db', (err) => {
         logger.error(err.message);
     }
     logger.info('Connected to the RPGBot Database');
-    db.run('CREATE TABLE IF NOT EXISTS players (psid text primary key, ign text, level int, exp int, max_hp, int, damage int, defense int)');
+    db.run(sql_commands.CHECK_DB_EXISTS);
 });
 
 // Parses a command and handles it accordingly
@@ -70,7 +71,7 @@ let handleRegistration = (psid, args) => {
     }
 
     // See if user already exists in database
-    let user_exists_query = 'SELECT * FROM players WHERE psid = (?)';
+    let user_exists_query = sql_commands.CHECK_USER_EXISTS;
     db.all(user_exists_query, [psid], (err, rows) => {
         if (err) {
             logger.error("Error checking database for existing user: " + err);
@@ -86,7 +87,7 @@ let handleRegistration = (psid, args) => {
             }
         } else {
             // There are no entries for that PSID, register a new user
-            let add_user = 'INSERT INTO players VALUES ((?), (?), 1, 0, 10, 5, 5)';
+            let add_user = sql_commands.REGISTER_NEW_USER;
             db.run(add_user, [psid, args[0]], (err) => {
                 if (err) {
                     logger.error("Error adding new player to database: " + err);
