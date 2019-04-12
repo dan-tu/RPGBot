@@ -9,9 +9,10 @@ module.exports = (req, res) => {
     if (body.object == 'page') {
         body.entry.forEach((entry) => {
             let webhook_event = entry.messaging[0];
-            console.log('Received event');
-
             let sender_psid = webhook_event.sender.id;
+
+            logger.info('Received event from ' + sender_psid);
+
             // Check event type
             if (webhook_event.message) {
                 handleMessage(sender_psid, webhook_event.message);
@@ -22,13 +23,12 @@ module.exports = (req, res) => {
 
         res.status(200).send("EVENT_RECEIVED");
     } else {
-        logger.error('')
+        logger.error('Received an event that is unhandled!')
         res.sendStatus(404);
     }
 };
 
 // Handlers
-
 function handleMessage (sender_psid, received_message) {
     let response;
 
@@ -58,15 +58,15 @@ function sendResponse (sender_psid, response) {
         "messaging_type" : "RESPONSE",
         "uri" : "https://graph.facebook.com/v3.2/me/messages",
         "qs" : {
-            "access_token" : "EAAHZCe2cBVR0BAPYufu0t1VxrZBKGYuyAx6vkhmZCdDWC8GaYwzBKZB7NudEi16il2IxX0DAaaU6FZCMHKRbFdv0MuxALebGw9YUU1et8GVul2n8kmrZBamh2opPoIu8o6VayzgfwDNwVlB9C5famGTO1gOLSYIVcYu5FtorKAJAZDZD"
+            "access_token" : PAGE_ACCESS_TOKEN
         },
         "method" : "POST",
         "json" : req_body
     }, (err, res, body) => {
         if (!err) {
-            console.log('Message sent to ', sender_psid, ': ', response);
+            logger.info('Message sent to ' + sender_psid + ': ' + response.text);
         } else {
-            console.error('Unable to send message:' + err);
+            logger.error('Unable to send message:' + err);
         }
     })
 }

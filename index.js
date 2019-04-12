@@ -6,7 +6,7 @@ const app = express().use(bodyParser.json());
 
 // Express listening to port 3000 for any requests
 const PORT = 3000;
-app.listen(PORT, () => logger.info('Webhook listening to port: ', PORT));
+app.listen(PORT, () => logger.info('Webhook listening to port: ' + PORT));
 
 // Webhook endpoint
 const messageHandler = require('./controllers/messageHandler');

@@ -10,8 +10,8 @@ const logger = require('winston');
 // psid is the user's PSID who sent the command
 // command is the command string
 var parseCommand = (psid, command) => {
-    console.log('Received command: ', command);
-    return "I am still under construction! Sorry! :(";
+    logger.info('Parsing "' + command + '" from PSID: ' + psid);
+    return "I am still under construction!";
 }
 
 module.exports = {
