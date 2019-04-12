@@ -1,4 +1,5 @@
 // Handles verification of our webhook with the Messenger API
+const logger = require('winston');
 
 module.exports = (req, res) => {
     let VERIFY_TOKEN = "HorsesEatCarrots";
@@ -12,10 +13,11 @@ module.exports = (req, res) => {
     if (mode && token) {
         // Mode and token are correct, return the challenge token
         if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-            console.log('Webhook verified and subscribed');
+            logger.info('Successfully subscribed to webhook');
             res.status(200).send(challenge);
         } else {
             // Send back forbidden status if tokens do not match
+            logger.error('Failed to subscribe to webhook');
             res.sendStatus(403);
         }
     } 
