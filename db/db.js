@@ -1,6 +1,6 @@
 const sqlite3 = require('sqlite3');
 const logger = require('winston');
-const sql_commands = require('../gameplay/helpers/sql_commands');
+const sql_commands = require('../gameplay/json/sql_commands');
 
 // Open database connection
 let db = new sqlite3.Database('./db/rpgbot.db', (err) => {

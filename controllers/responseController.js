@@ -1,4 +1,8 @@
 // Sends response to PSID
+const request = require('request');
+const logger = require('winston');
+const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+
 module.exports = (sender_psid, response) => {
     let req_body = {
         "messaging_type" : "RESPONSE",

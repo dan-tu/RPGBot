@@ -1,17 +1,10 @@
 /* 
 RPGBot.js
 
-Controls game logic, handles commands, and responses
-
+Controls game logic and handles commands and responses
 */
-
 const logger = require('winston');
-const helpText = require('./helpers/helpText.json');
-const request = require('request');
-const sql_commands = require('./helpers/sql_commands');
 const sendResponse = require('../controllers/responseController');
-const db = require('../db/db.js');
-const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 
 // Parses a command and handles it accordingly
 // psid is the user's PSID who sent the command
@@ -42,19 +35,6 @@ let parseCommand = (psid, commands) => {
     }
 
     sendResponse(psid, response);
-}
-
-// Provides a help string depending on which arguments were provided
-// args is the arguments after 'Help <args>'
-// Returns the help string
-let getHelp = (args) => {
-    if (args.length === 0) {
-        return helpText.noargs;
-    } else {
-        // switch (args[0]) {
-        return "I can't help you with that command!"
-        // }
-    }
 }
 
 module.exports = {
