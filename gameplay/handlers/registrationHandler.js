@@ -8,7 +8,7 @@ const sendResponse = require('../../controllers/responseController');
 // If it is, calls the exists function
 // If not, calls the does not exist (dne) function
 // If checking the database fails, calls fail
-let checkUserRegistered = (psid, username, userExists, userDNE, fail) => {
+let checkUserRegistered = (psid, userExists, userDNE, fail) => {
     let user_exists_query = sql_commands.CHECK_USER_EXISTS;
     db.all(user_exists_query, [psid], (err, rows) => {
         if (err) {
@@ -55,7 +55,7 @@ let handleRegistration = (psid, args) => {
     });
 }
 
-    checkUserRegistered(psid, args[0], handleUserExists, registerUser, fail_query);
+    checkUserRegistered(psid, handleUserExists, registerUser, fail_query);
 }
 
 module.exports = {
