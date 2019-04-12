@@ -36,8 +36,13 @@ let parseCommand = (psid, commands) => {
     }
 
     // Block users from using any commands that require them to be registered
-    checkUserRegistered(psid, null, )
-    sendResponse(psid, response);
+    checkUserRegistered(psid, () => {
+        sendResponse(psid, response);
+    }, () => {
+        sendResponse(psid, "Please register to play the game! For more info, ask me for *help*");
+    }, () => {
+        sendResponse(psid, "I couldn't do what you wanted! Please try again in a few minutes.");
+    });
 }
 
 module.exports = {
