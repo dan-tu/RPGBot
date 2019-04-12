@@ -21,7 +21,7 @@ let parseCommand = (psid, commands) => {
     // Three commands not required to be registered to use: help, register, and commands
     switch (command) {
         case 'help':
-            sendResponse(getHelp(args));
+            sendResponse(psid, getHelp(args));
             return;
         case 'register':
             handleRegistration(psid, args);

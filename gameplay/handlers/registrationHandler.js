@@ -52,7 +52,7 @@ let handleRegistration = (psid, args) => {
                 return;
             }
             logger.info("New user registered: PSID " + psid + " -> " + username);
-            fail_query();
+            sendResponse(psid, "You are now registered as *" + username + "*! Enjoy the game!");
     });
 }
 
