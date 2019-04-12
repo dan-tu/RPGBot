@@ -5,6 +5,7 @@ Controls game logic and handles commands and responses
 */
 const logger = require('winston');
 const sendResponse = require('../controllers/responseController');
+const { handleRegistration, checkUserRegistered } = require('./handlers/registrationHandler');
 
 // Parses a command and handles it accordingly
 // psid is the user's PSID who sent the command
@@ -16,13 +17,13 @@ let parseCommand = (psid, commands) => {
     let args = args_arr.slice(1, args_arr.length);
     let response;
 
+    // Three commands not required to be registered to use: help, register, and commands
     switch (command) {
         case 'help':
-            response = getHelp(args);
-            break;
+            sendResponse(getHelp(args));
+            return;
         case 'register':
-            const registrationHandler = require('./handlers/registrationHandler.js');
-            registrationHandler(psid, args);
+            handleRegistration(psid, args);
             return;
         case 'commands':
             response = "I can't do that yet!"
@@ -34,6 +35,8 @@ let parseCommand = (psid, commands) => {
             response = "I did not recognize that command. For help, send me *help*. For a list of commands, use *commands*.";
     }
 
+    // Block users from using any commands that require them to be registered
+    checkUserRegistered(psid, null, )
     sendResponse(psid, response);
 }
 

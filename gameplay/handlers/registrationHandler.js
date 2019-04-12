@@ -3,6 +3,8 @@
 const logger = require('winston');
 const db = require('../../db/db');
 
+let fail_query = sendResponse(psid, "I couldn't do what you wanted! Please try again in a few minutes.");
+
 // Checks if the user's PSID is registered.
 // If it is, calls the exists function
 // If not, calls the does not exist (dne) function
@@ -17,25 +19,10 @@ let checkUserRegistered = (psid, username, userExists, userDNE, fail) => {
         }
         // Check query results for existing user
         if (rows.length !== 0 && rows[0].psid == psid) {
-            userExists(psid, rows[0].username);
+            userExists();
         } else {
-            userDNE(psid, username, fail);
+            userDNE();
         } 
-    });
-}
-
-// Adds a new user with a given username
-// Only called when user uses register command
-let registerUser = (psid, username, fail) => {
-    let add_user = sql_commands.REGISTER_NEW_USER;
-    db.run(add_user, [psid, username], (err) => {
-        if (err) {
-            logger.error("Error adding new player to database: " + err);
-            fail();
-            return;
-        }
-        logger.info("New user registered: PSID " + psid + " -> " + username);
-        sendResponse(psid, "You are now registered under the username *" + username + "*. Enjoy the game!");
     });
 }
 
@@ -47,16 +34,28 @@ let handleRegistration = (psid, args) => {
         return;
     }
 
-    let handleUserExists = (psid, username) => {
+    let username = args[0];
+
+    let handleUserExists = () => {
         sendResponse(psid, "You are already registered with the name *" + username + "*");
     }
 
-    // When db queries fail
-    let handleErrors = () => {
-        sendResponse(psid, "I couldn't do what you wanted! Please try again in a few minutes.")
-    }
+    // Adds a new user with a given username
+    // Only called when user uses register command
+    let registerUser = () => {
+        let add_user = sql_commands.REGISTER_NEW_USER;
+        db.run(add_user, [psid, username], (err) => {
+            if (err) {
+                logger.error("Error adding new player to database: " + err);
+                sendResponse(psid, "I couldn't do what you wanted! Please try again in a few minutes.");
+                return;
+            }
+            logger.info("New user registered: PSID " + psid + " -> " + username);
+            fail_query();
+    });
+}
 
-    checkUserRegistered(psid, args[0], handleUserExists, registerUser, handleErrors);
+    checkUserRegistered(psid, args[0], handleUserExists, registerUser, fail_query);
 }
 
 module.exports = {
