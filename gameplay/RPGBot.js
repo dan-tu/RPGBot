@@ -22,7 +22,7 @@ let db = new sqlite3.Database('./db/rpgbot.db', (err) => {
 
 // Parses a command and handles it accordingly
 // psid is the user's PSID who sent the command
-// command is the command string
+// command is the message sent by the user
 let parseCommand = (psid, commands) => {
     logger.info('Parsing "' + commands + '" from PSID: ' + psid);
     let args_arr = commands.toLowerCase().split(" ");
@@ -63,14 +63,15 @@ let getHelp = (args) => {
     }
 }
 
-// Creates a new database entry for this user with starting information and desired username
+// Checks if user is already registered.
+// If not, adds the user to the database.
 let handleRegistration = (psid, args) => {
     if (args.length !== 1) {
         sendResponse(psid, "Please use *Register <Username>* to register. Usernames may not have any spaces in them.");
         return;
     }
 
-    // See if user already exists in database
+    // See if user is already registered
     let user_exists_query = sql_commands.CHECK_USER_EXISTS;
     db.all(user_exists_query, [psid], (err, rows) => {
         if (err) {
@@ -79,12 +80,9 @@ let handleRegistration = (psid, args) => {
             return;
         }
 
-        // Should technically only have one row since psid is a primary key
-        if (rows.length !== 0) {
-            if (rows[0].psid == psid) {
-                logger.info("User tried to register but was already registered: " + psid);
-                sendResponse(psid, ("You are already registered with the username: *" + rows[0].ign + "*"));
-            }
+        // If user already exists in our DB
+        if (rows.length !== 0 && rows[0].psid == psid) {
+            sendResponse(psid, ("You are already registered with the username: *" + rows[0].ign + "*"));
         } else {
             // There are no entries for that PSID, register a new user
             let add_user = sql_commands.REGISTER_NEW_USER;
@@ -94,6 +92,7 @@ let handleRegistration = (psid, args) => {
                     sendResponse(psid, "I couldn't make an account for you. Please try again in a few minutes.");
                     return;
                 }
+                logger.info("New user registered. PSID: " + psid + " -> " + args[0]);
                 sendResponse(psid, "You are now registered under the username *" + args[0] + "*. Enjoy the game!");
             });
         }
