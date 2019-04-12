@@ -2,8 +2,7 @@
 // If not, adds the user to the database.
 const logger = require('winston');
 const db = require('../../db/db');
-
-let fail_query = sendResponse(psid, "I couldn't do what you wanted! Please try again in a few minutes.");
+const sendResponse = require('../../controllers/responseController');
 
 // Checks if the user's PSID is registered.
 // If it is, calls the exists function
@@ -35,6 +34,7 @@ let handleRegistration = (psid, args) => {
     }
 
     let username = args[0];
+    let fail_query = sendResponse(psid, "I couldn't do what you wanted! Please try again in a few minutes.");
 
     let handleUserExists = () => {
         sendResponse(psid, "You are already registered with the name *" + username + "*");
