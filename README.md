@@ -1,7 +1,5 @@
 # Facebook Messenger RPG Bot
 
-## Description
-
 Facebook Messenger RPG Bot (RPGBot) is a text-based player interface (TUI) game played through Facebook Messenger (Messenger). players can play the game by sending commands to the bot. 
 
 ## Purpose
@@ -19,7 +17,7 @@ Node.Js, JavaScript, SQLite
 
 ## Front End (TUI)
 
-players will be able to send text commands to the bot through Messenger. Eventually, players will also be able to see options using post-back buttons.
+Players will be able to send text commands to the bot through Messenger. Eventually, players will also be able to see options using post-back buttons.
 
 ### Commands
 The structure of commands will be: '\<command\> \<args\>'
@@ -31,7 +29,7 @@ Facebook provides a webhook that the server can subscribe to. Once the server is
 The back end will be hosted using Node.Js on my local computer via Ngrok (will eventually be moved to Azure).
 
 ### Database
-player data (exp, level, etc.) will be stored in a SQL database. The schema of the database is currently:
+Player data (exp, level, etc.) will be stored in a SQL database. The schema of the database is currently:
 
 Players (PRIMARY KEY psid, IGN, level, exp, max_health, damage, defense)
 
