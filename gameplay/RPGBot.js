@@ -7,6 +7,7 @@ const logger = require('winston');
 const sendResponse = require('../controllers/responseController');
 const { handleRegistration, checkUserRegistered } = require('./handlers/registrationHandler');
 const getHelp = require('./handlers/getHelp');
+const BattleBot = require('./BattleBot');
 
 // Parses a command and handles it accordingly
 // psid is the user's PSID who sent the command
